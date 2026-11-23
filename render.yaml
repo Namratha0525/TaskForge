@@ -1,0 +1,30 @@
+services:
+  - type: web
+    name: taskforge-demo
+    runtime: docker
+    plan: free
+    region: singapore
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        sync: false
+      - key: DATABASE_USER
+        fromDatabase:
+          name: taskforge-demo-db
+          property: user
+      - key: DATABASE_PASSWORD
+        fromDatabase:
+          name: taskforge-demo-db
+          property: password
+      - key: TASKFORGE_TOKEN
+        generateValue: true
+      - key: WORKERS
+        value: "1"
+      - key: REDIS_ENABLED
+        value: "false"
+databases:
+  - name: taskforge-demo-db
+    plan: free
+    region: singapore
+    databaseName: taskforge
+    ipAllowList: []
