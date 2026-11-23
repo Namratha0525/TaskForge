@@ -1,0 +1,24 @@
+name: TaskForge integration
+on: [push, pull_request]
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        redis: ["false", "true"]
+    env:
+      REDIS_ENABLED: ${{ matrix.redis }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: docker compose --profile redis up -d --wait redis
+      - run: docker compose --profile redis up --build -d
+      - run: |
+          for attempt in {1..60}; do
+            curl -fsS http://127.0.0.1:8081/health && break
+            sleep 2
+          done
+          python3 smoke.py
+      - if: failure()
+        run: docker compose --profile redis logs
+      - if: always()
+        run: docker compose --profile redis down -v
